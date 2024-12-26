@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .word {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    #inputField {
+      font-size: 18px;
+      padding: 10px;
+      width: 50%;
+    }
+    .result, .score {
+      margin-top: 20px;
+      font-size: 20px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #timer {
+      font-size: 20px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Typing Game</h1>
+  <p>Type the displayed word before the timer runs out!</p>
+  <div class="word" id="wordToType"></div>
+  <div id="timer"></div>
+  <input type="text" id="inputField" placeholder="Type here..." disabled>
+  <div class="score" id="score"></div>
+  <div class="result" id="result"></div>
+  <button id="startButton">Start Game</button>
+
+  <script>
+    const words = ["python", "keyboard", "programming", "developer", "challenge", "fast", "accuracy", "random", "code", "game"];
+    let wordToType = "";
+    let startTime;
+    let score = 0;
+    let currentRound = 0;
+    const totalRounds = 5; // Total number of rounds
+    const roundTime = 5; // Time for each round in seconds
+    let timerInterval;
+
+    const wordElement = document.getElementById("wordToType");
+    const inputField = document.getElementById("inputField");
+    const resultElement = document.getElementById("result");
+    const scoreElement = document.getElementById("score");
+    const timerElement = document.getElementById("timer");
+    const startButton = document.getElementById("startButton");
+
+    function startGame() {
+      // Reset game state
+      score = 0;
+      currentRound = 0;
+      scoreElement.textContent = `Score: 0`;
+      resultElement.textContent = "";
+      inputField.disabled = true;
+      inputField.value = "";
+      timerElement.textContent = "";
+
+      // Start the first round
+      startRound();
+    }
+
+    function startRound() {
+      if (currentRound >= totalRounds) {
+        endGame();
+        return;
+      }
+
+      // Increment round
+      currentRound++;
+      resultElement.textContent = "";
+      inputField.value = "";
+
+      // Choose a random word
+      wordToType = words[Math.floor(Math.random() * words.length)];
+      wordElement.textContent = `Round ${currentRound}: ${wordToType}`;
+
+      // Enable input and focus
+      inputField.disabled = false;
+      inputField.focus();
+
+      // Start timer
+      startTime = new Date().getTime();
+      startTimer(roundTime);
+
+      // Listen for input
+      inputField.addEventListener("input", checkInput);
+    }
+
+    function checkInput() {
+      if (inputField.value === wordToType) {
+        const endTime = new Date().getTime();
+        const timeTaken = (endTime - startTime) / 1000; // Convert to seconds
+        score += Math.max(0, roundTime - timeTaken); // Bonus points for faster typing
+        scoreElement.textContent = `Score: ${score.toFixed(2)}`;
+        resultElement.textContent = `Great! You completed the word in ${timeTaken.toFixed(2)} seconds.`;
+
+        clearInterval(timerInterval);
+        inputField.disabled = true;
+        inputField.removeEventListener("input", checkInput);
+
+        // Start next round after a short delay
+        setTimeout(startRound, 2000);
+      }
+    }
+
+    function startTimer(seconds) {
+      let timeRemaining = seconds;
+      timerElement.textContent = `Time left: ${timeRemaining}s`;
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        timerElement.textContent = `Time left: ${timeRemaining}s`;
+
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          resultElement.textContent = "Time's up!";
+          inputField.disabled = true;
+          inputField.removeEventListener("input", checkInput);
+
+          // Start next round after a short delay
+          setTimeout(startRound, 2000);
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      wordElement.textContent = "Game Over!";
+      timerElement.textContent = "";
+      resultElement.textContent = `Final Score: ${score.toFixed(2)}`;
+      inputField.disabled = true;
+    }
+
+    startButton.addEventListener("click", startGame);
+  </script>
+</body>
+</html>
